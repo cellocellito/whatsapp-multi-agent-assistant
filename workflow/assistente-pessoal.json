@@ -1,0 +1,2103 @@
+{
+  "name": "Assistente Pessoal",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "assistentepessoal",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -352,
+        208
+      ],
+      "id": "6840443f-f4ff-4a51-9d5d-eb119bdf7f43",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tipo }}",
+                    "rightValue": "conversation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "fdb132f5-92a4-4fc6-a71d-1be454ae4bab"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0fac00cc-1c6f-4b32-9fd3-30b0bb3971e9",
+                    "leftValue": "={{ $json.tipo }}",
+                    "rightValue": "audioMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Áudio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "51093783-d08b-4ff6-be4e-e2a6cbd679e4",
+                    "leftValue": "={{ $json.tipo }}",
+                    "rightValue": "imageMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Imagem"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        208
+      ],
+      "id": "d7b5b53a-aab4-4816-a0db-b991bdb668b4",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "043ace95-ee46-495f-a419-173ca95c137d",
+              "leftValue": "={{ $json.fromMe }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        160,
+        208
+      ],
+      "id": "11f6a862-da8e-4027-afca-0eecfb7dc397",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $json.remoteJid }}",
+        "messageData": "={{ JSON.stringify({\n  message: $json.texto,\n  timestamp: $json.timestamp,\n  message_id: $json.id\n}) }}\n",
+        "tail": true
+      },
+      "id": "a93b97b6-7f69-4f75-9665-742f25a1a5e7",
+      "name": "empilhaTexto",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "message",
+        "key": "={{ $('Code in JavaScript1').item.json.remoteJid }}",
+        "keyType": "=automatic",
+        "options": {}
+      },
+      "id": "ce4f6e2a-a128-4301-aae9-1d5e19acec9b",
+      "name": "Obtem",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1904,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Switch').item.json.remoteJid }}",
+        "messageData": "={{ JSON.stringify({ \n  message: $('Transcreve audio - Groq2').item.json.text,\n  timestamp: $('Switch').item.json.timestamp,\n  message_id: $('Switch').item.json.id\n}) }}\n",
+        "tail": true
+      },
+      "id": "d25b609e-74ee-4f9a-94a5-957a6114d15e",
+      "name": "empilhaÁudio",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Switch').item.json.remoteJid }}",
+        "messageData": "={{ JSON.stringify({\n  message: $json.text,\n  timestamp: $('Switch').item.json.timestamp,\n  message_id: $('Switch').item.json.id\n}) }}\n",
+        "tail": true
+      },
+      "id": "d738f5e1-2f23-4aa1-9553-c1c1800d3179",
+      "name": "empilhaIMG",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sua missão é identificar e explicar o que contém na imagem. E se houver alguma informação escrita, adicione no output também.\n\nExemplo de output desejado:\nDescrição da imagem: {o que contém na imagem}\nInformações da imagem: {textos escritos na imagem || sem texto}",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary"
+            }
+          ]
+        }
+      },
+      "id": "c331e02a-24f2-4c31-9b19-d84c121222bd",
+      "name": "Image Explainer",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        1328,
+        384
+      ],
+      "typeVersion": 1.4
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer <GROQ_API_KEY>"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "=whisper-large-v3-turbo"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "temperature",
+              "value": "0.2"
+            },
+            {
+              "name": "response_format",
+              "value": "verbose_json"
+            },
+            {
+              "name": "language",
+              "value": "pt"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "39dad07c-0cfa-4869-8446-0e4d2496eeef",
+      "name": "Transcreve audio - Groq2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1440,
+        224
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1328,
+        528
+      ],
+      "id": "4c317235-ffa2-446f-a2a4-183abd1c17ca",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        384
+      ],
+      "id": "0663e0ef-a026-4410-a110-69a27b7a2c94",
+      "name": "Wait1"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        224
+      ],
+      "id": "5e14335f-85cd-4bba-bda1-3af7d5aa8171",
+      "name": "Wait2"
+    },
+    {
+      "parameters": {},
+      "id": "fbbfcc47-2aa0-42a7-9615-f678e0440f45",
+      "name": "NoOp.",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "amount": "=5"
+      },
+      "id": "98a022d1-d359-478f-bf43-ee08d4c80b73",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2368,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Code in JavaScript1').item.json.remoteJid }}"
+      },
+      "id": "ca7e9b33-6ef8-4eaf-8074-5c3904167b99",
+      "name": "Deleta",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9554b31a-ffbb-418c-9624-23ff1df6f2b4",
+                    "leftValue": "={{ $('Code in JavaScript1').item.json.id.toString().trim() }}",
+                    "rightValue": "={{ JSON.parse($json.message.last()).message_id.toString().trim() }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "nada a fazer"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "55c6b9f7-8ad7-4783-87c0-95c06ea87219",
+                    "leftValue": "={{ JSON.parse($json.message.last()).timestamp }}",
+                    "rightValue": "={{ $now.minus($('Code in JavaScript1').item.json.timedebouncerTime, 'seconds') }}",
+                    "operator": {
+                      "type": "dateTime",
+                      "operation": "before"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "prosseguir"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "esperar"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        2144,
+        208
+      ],
+      "id": "f085000b-7737-4be0-92ba-e27feb57cb9f",
+      "name": "Switch7"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Code in JavaScript').item.json.texto_usuario }}",
+        "options": {
+          "systemMessage": "={{ $json.personalidade_assistente }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3968,
+        224
+      ],
+      "id": "37b78f0a-31f1-469c-a456-b5c9c2a070a1",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "list",
+          "cachedResultName": "primary"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        3648,
+        928
+      ],
+      "id": "22f68a44-1625-4a27-94ba-20cc0654b042",
+      "name": "Create an event in Google Calendar"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        4224,
+        928
+      ],
+      "id": "948c0b8e-76a4-4ab8-8bcd-a385b91e96bb",
+      "name": "Send a message in Gmail"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "list",
+          "cachedResultName": "primary"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        3808,
+        928
+      ],
+      "id": "def5fbeb-172b-47ed-821b-bf8333bbfb52",
+      "name": "Get many events in Google Calendar"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "filters": {
+          "receivedAfter": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Received_After', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        4384,
+        928
+      ],
+      "id": "61aa7eb0-f536-492b-b1e7-cd7482a15eee",
+      "name": "Get many messages in Gmail"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {
+          "webSearch": {
+            "searchContextSize": "medium"
+          }
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        4864,
+        928
+      ],
+      "id": "2feb4506-b24b-4e5b-abb7-9b324b06d388",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        5392,
+        832
+      ],
+      "id": "a411a0cd-062f-48e6-a4de-e41b414d0405",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "memoria_assistente",
+          "mode": "list",
+          "cachedResultName": "memoria_assistente"
+        },
+        "options": {
+          "searchFilterJson": "={\n  \"must\": [\n    {\n      \"key\": \"metadata.telefone\",\n      \"match\": {\n        \"value\": \"{{ $json.telefone_dono }}\"\n      }\n    }\n  ]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        5296,
+        960
+      ],
+      "id": "5297fe25-9e54-491d-be25-77a5b89b9230",
+      "name": "Qdrant Vector Store"
+    },
+    {
+      "parameters": {
+        "content": "## Recebimento e Tratamento das mensagens",
+        "height": 384,
+        "width": 848,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -448,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "f009e25c-e252-45dc-ae27-facba568f0b2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# Lógica de processamento de mensagem, imagem e áudio",
+        "height": 656,
+        "width": 1648,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        416,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "18b38da2-5fac-49f7-bba0-197283f4255c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Aguarda todas as mensagens",
+        "height": 656,
+        "width": 464,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2080,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "174706fb-7bb9-4976-98b1-858254af9717",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "# AI Agent principal sorteador de problemas/soluções",
+        "height": 512,
+        "width": 1152,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3504,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "1fece326-83ae-4f5e-a006-975cf00aaa7c",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Agendamento de tarefas usando Google Calendar",
+        "height": 576,
+        "width": 512,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3504,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "9317897c-7825-4b75-9ea0-e866032e024f",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Envio e Monitoramento de E-mails",
+        "height": 576,
+        "width": 592,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4032,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "7c237f3c-518c-4dd7-8b31-704a1d0d521c",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Pesquisas em tempo real utilizando Chat GPT",
+        "height": 576,
+        "width": 544,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4640,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "0d7ab518-f14d-4d34-8324-c0ee86105d0c",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Memória de dias anteriores",
+        "height": 576,
+        "width": 544,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5200,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "643de3c1-64a6-4e00-aed3-048636309467",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## Consultor e Organizador de transações",
+        "height": 576,
+        "width": 512,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5760,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "2937d624-ae08-45bc-a91f-fc7aeb08e6f3",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## IAs utilizadas nos agentes",
+        "height": 368,
+        "width": 544,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        6288,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "4e2c49f5-3fd6-46fe-b0a1-0f41615c88ae",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        6688,
+        736
+      ],
+      "id": "56403975-f79a-495f-b4aa-177f39941632",
+      "name": "finanças"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        6576,
+        736
+      ],
+      "id": "a787dc7b-3fc1-4982-b9f9-084372fcc4c1",
+      "name": "Memória"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        6464,
+        736
+      ],
+      "id": "7db7857d-3115-49bf-be17-7ff443b2f02a",
+      "name": "Emails"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        6352,
+        736
+      ],
+      "id": "eadf1ef6-dc17-414c-929b-cf586d383463",
+      "name": "Calendário"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3920,
+        384
+      ],
+      "id": "aea416f7-eb9b-4ac5-9bef-0fdd3b2df5d1",
+      "name": "Agente Principal"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        5552,
+        960
+      ],
+      "id": "f7301fb5-e4cd-4410-952f-ea512c07a4c0",
+      "name": "Embeddings"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        5296,
+        832
+      ],
+      "id": "ef2f954f-96f7-4a4e-be96-e4fe6b6120cb",
+      "name": "OpenAI"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "Personalidades dos Assistentes",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telefone_dono",
+              "keyValue": "={{ $json.telefone }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2864,
+        224
+      ],
+      "id": "fac9147d-4aac-45cc-b7ef-33a6cf119e5d",
+      "name": "Get a row"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.remoteJid }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        4160,
+        384
+      ],
+      "id": "53f7f2ea-a6b1-4996-b30e-fc621a6a8140",
+      "name": "Chat memory"
+    },
+    {
+      "parameters": {
+        "content": "# Personalidade da Assistente\n",
+        "height": 512,
+        "width": 928
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2560,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "1015e69a-e63e-4213-8ff3-f509cb042313",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "## Filtro da mensagem da IA\n",
+        "height": 512,
+        "width": 1072
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4672,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "3157d0ec-ab14-4cda-8039-9d719461d760",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "886dc665-a950-4df2-8ab1-0b450ed61d68",
+              "name": "remoteJid",
+              "value": "={{ $json.body.data.key.remoteJid }}",
+              "type": "string"
+            },
+            {
+              "id": "0f1c9c19-37a5-4328-990a-2250b163e8c4",
+              "name": "fromMe",
+              "value": "={{ $json.body.data.key.fromMe }}",
+              "type": "boolean"
+            },
+            {
+              "id": "f3866f40-764e-49b6-8db0-db08f5b26d0c",
+              "name": "nome",
+              "value": "={{ $json.body.data.pushName }}",
+              "type": "string"
+            },
+            {
+              "id": "c12f85d7-0daf-4ae5-8428-c2a2f9505f12",
+              "name": "texto",
+              "value": "={{ $json.body.data.message.conversation }}",
+              "type": "string"
+            },
+            {
+              "id": "f2465290-254f-40e9-b2e0-86beeff94bc4",
+              "name": "tipo",
+              "value": "={{ $json.body.data.messageType }}",
+              "type": "string"
+            },
+            {
+              "id": "642700b0-70ca-49f2-8e19-8cc43b3b050e",
+              "name": "id",
+              "value": "={{ $json.body.data.key.id }}",
+              "type": "string"
+            },
+            {
+              "id": "a69bc697-ccda-482c-ac70-d420b55c927c",
+              "name": "status",
+              "value": "={{ $json.body.data.status }}",
+              "type": "string"
+            },
+            {
+              "id": "a0968a03-1187-4de5-b163-30ff7ab0489a",
+              "name": "time",
+              "value": "={{ $json.body.date_time }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        1440
+      ],
+      "id": "b8474232-846b-4761-85ba-013016aae6f1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const remoteJid = $('If').first().json.remoteJid || \"\";\n\n// Filtra deixando apenas os números\nconst numeroLimpo = remoteJid.replace(/\\D/g, '');\n\n// Pega TODAS as mensagens acumuladas no buffer do Redis (ordem cronológica)\nconst buffer = $('Deleta').first().json.message || [];\n\nconst textos = buffer.map(raw => {\n    try {\n        return JSON.parse(String(raw).trim()).message || \"\";\n    } catch (error) {\n        return \"\"; // ignora item corrompido em vez de quebrar o fluxo\n    }\n}).filter(t => t.length > 0);\n\nreturn {\n    json: {\n        ...$input.item.json,\n        telefone: numeroLimpo,\n        texto_usuario: textos.join(\"\\n\")\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        224
+      ],
+      "id": "92a89f9d-6c02-4f75-b93f-cc67965f6188",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "toolDescription": "=Use EXCLUSIVAMENTE para agendar ou consultar eventos na agenda do Cello. Requer extração de datas, horas e verificação de conflitos.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é o especialista em agenda do Cello. Sua única função é gerenciar o tempo. Sempre converta termos como 'amanhã', 'semana que vem' ou 'daqui a pouco' para a data/hora exata (ISO 8601). Assuma sempre o fuso horário local. Confirme os agendamentos de forma seca. Ex: 'Reunião da Pulse Sync marcada pra amanhã às 14h. Fechou.'\n\nConsidere que o momento atual exato é: {{ $now.setZone('America/Sao_Paulo').toFormat('dd/MM/yyyy HH:mm') }}. O nosso fuso horário oficial é America/Sao_Paulo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        3648,
+        640
+      ],
+      "id": "591cf04f-16c5-4cd1-a29a-b99b40921b25",
+      "name": "agente calendário"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use para ler a caixa de entrada, resumir mensagens não lidas ou enviar e-mails em nome do Cello.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você gerencia os e-mails pessoais do Cello. Sempre use o tom de voz mencionado na mensagem do Cello para criação do e-mail. Se estiver resumindo e-mails recebidos, corte o lixo e entregue apenas os bullet points do que realmente importa.\nSEMPRE que o Cello perguntar \"quais os emails recebidos de hoje?\" diga apenas os emails recebidos no dia {{ $now.setZone('America/Sao_Paulo').toFormat('dd/MM/yyyy') }}."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        4224,
+        640
+      ],
+      "id": "e31f776a-6419-47c8-afc9-f3c78b3778b8",
+      "name": "agente e-mail"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use SEMPRE que a mensagem envolver dinheiro, registros de gastos/ganhos na Pulse Sync, Void Born ou pessoais, OU quando o Cello fizer perguntas analíticas sobre o passado financeiro (ex: 'quanto gastei mês passado?', 'como foram as estatísticas?', 'me dê um resumo de Junho').",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "Você é o contador pessoal executivo do Cello. Sua única função é gerenciar a tabela 'Transações 2026' no Notion de forma precisa e seca, imitando o jeito Alfred de ser.\n\nVocê tem acesso a duas ferramentas para a mesma tabela: uma para **Criar (escrever)** novas transações e outra para **Get All (ler)** dados existentes. \n\nSua lógica de decisão:\n\n1. Se a mensagem do Cello for uma afirmação de ação (ex: 'gastei', 'paguei', 'recebi', 'lança aí'), use a ferramenta de **Criar**. Você é um especialista em mapear a frase do Cello para as colunas exatas da tabela do Notion (Descrição, Tipo, Categoria, Data, Valor, Forma de Pagamento, Conta/Cartão, Data de Vencimento, Status). Não peça confirmação, apenas execute e dê uma confirmação curta. Ex: 'Sushi de R$ 120 lançado. Tá na mão.'\n\n2. Se a mensagem do Cello for uma pergunta analítica ou sobre o passado (ex: 'quanto gastei mês passado?', 'estatísticas de Junho', 'me dê um resumo'), use a ferramenta de **Get All**. \n   - **Pulo do gato:** Você deve primeiro calcular o intervalo de tempo solicitado. Se hoje é Agosto, 'mês passado' é o intervalo de 01/Julho a 31/Julho. Chame a ferramenta aplicando o filtro de data correto.\n   - Quando receber os dados brutos da tabela, forneça um resumo executivo e útil. Totalize os gastos por categoria e tipo e apresente o resultado em bullet points curtos. Ex: 'Resumo de Julho: Gastos totais R$ 1.500. Principais categorias: Sushi (R$ 300), Servidores Pulse Sync (R$ 250), Academia (R$ 150).'\n\nSeja letal, rápido e nunca invente dados que não estão no Notion."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        5904,
+        640
+      ],
+      "id": "a0043aca-f8ff-4266-ba61-540984a6976f",
+      "name": "agente finanças"
+    },
+    {
+      "parameters": {
+        "toolDescription": "=Use APENAS para buscar informações na web em tempo real, documentações técnicas atualizadas, notícias ou cotações que estão fora do seu conhecimento base.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=Você é um pesquisador focado em resultados. Vá direto ao ponto. Se o Cello perguntar sobre código (PHP, SQL, n8n), entregue o snippet limpo, otimizado e sem explicações óbvias que um dev pleno/sênior já sabe. Cite as fontes apenas se for documentação.\nO dia de hoje é {{ $today }}, use essa informação para fazer buscas consistentes com o dia atual."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        4784,
+        624
+      ],
+      "id": "9821b1db-65dd-4ec1-8e7d-9c4036fd4191",
+      "name": "agente pesquisa"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use SEMPRE que o Cello referenciar o passado, pedir para resgatar uma ideia de projeto, ou perguntar 'o que a gente tinha decidido sobre...'",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "Você acessa o banco vetorial (Qdrant) do Cello. Busque no contexto fornecido a exata memória que ele solicitou. Não invente detalhes. Se não achar no histórico, seja direto: 'Chefe, não achei nenhum registro sobre isso nas nossas conversas.'"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        5344,
+        640
+      ],
+      "id": "c410fd86-d2ea-41a6-bec8-8987ae25c072",
+      "name": "agente memória"
+    },
+    {
+      "parameters": {
+        "jsCode": "// O .first() puxa com segurança o primeiro e único item gerado no início do fluxo\nconst userMsg = $('Code in JavaScript').first().json.texto_usuario || \"Mensagem omitida\";\n\n// O .first() puxa a resposta final do agente logo atrás deste nó\nconst aiMsg = $input.first().json.output || \"\";\n\n// Puxa o telefone limpo\nconst telefone = $('Code in JavaScript').first().json.telefone || \"\";\n\n// Retorna tudo dentro de um Array (colchetes), que é o padrão que o n8n exige no modo All Items\nreturn [{\n    json: {\n        lembranca: `Chefe: ${userMsg}\\nAlfred: ${aiMsg}`,\n        telefone: telefone,\n        timestamp: Math.floor(Date.now() / 1000)\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4912,
+        224
+      ],
+      "id": "57558835-e86a-4c1a-b2b2-638db40738f8",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "memoria_assistente",
+          "mode": "list",
+          "cachedResultName": "memoria_assistente"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        5296,
+        224
+      ],
+      "id": "870489e3-ab5f-4175-b5de-46cd7321dc4d",
+      "name": "Qdrant Vector Store1"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "<NOTION_DATABASE_ID>",
+          "mode": "list",
+          "cachedResultName": "Transações 2026",
+          "cachedResultUrl": "https://www.notion.so/<NOTION_DATABASE_ID>"
+        },
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Categoria|select",
+              "selectValue": "={{ $fromAI('categoria_transacao', 'Classifique a categoria pelo contexto (ex: lanche = Alimentação). Escolha OBRIGATORIAMENTE uma destas opções exatas: \"Assinaturas\", \"Educação\", \"Alimentação\", \"Pulse Sync\", \"Solutudo\" ou \"Pessoal\".', 'string') }}"
+            },
+            {
+              "key": "Conta/Cartão|select",
+              "selectValue": "={{ $fromAI('conta_cartao', 'Qual banco foi usado. Se não for especificado, tente deduzir ou deixe em branco. Opções OBRIGATÓRIAS e exatas: \"PicPay\" ou \"Nubank\".', 'string') }}"
+            },
+            {
+              "key": "Forma de Pagamento|select",
+              "selectValue": "={{ $fromAI('forma_pagamento', 'Método usado no pagamento. Se não for especificado, tente deduzir ou deixe em branco. Opções OBRIGATÓRIAS e exatas: \"Cartão de Crédito\", \"Cartão de Débito\", \"Pix\" ou \"Dinheiro\".', 'string') }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "={{ $fromAI('status_transacao', 'Defina o status. Se o usuário já pagou/recebeu, ou se ainda vai. Escolha OBRIGATORIAMENTE uma destas opções exatas: \"Paga\", \"A pagar\", \"Recebido\" ou \"A receber\". Não responda nada além da opção.', 'string') }}"
+            },
+            {
+              "key": "Tipo|select",
+              "selectValue": "={{ $fromAI('tipo_transacao', 'Classifique a transação. Escolha OBRIGATORIAMENTE uma destas opções exatas: \"Despesa Fixa\", \"Despesa Variável\", \"Ganho\", \"Dívida/Parcelamento\" ou \"Investimento\". Não responda nada além da opção escolhida.', 'string') }}"
+            },
+            {
+              "key": "Data|date",
+              "date": "={{ $now.setZone('America/Sao_Paulo').toFormat('dd/MM/yyyy') }}",
+              "timezone": "Brazil/East"
+            },
+            {
+              "key": "Valor|number",
+              "numberValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('propertyValues6_Number', ``, 'number') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notionTool",
+      "typeVersion": 2.2,
+      "position": [
+        5904,
+        912
+      ],
+      "id": "e2aca2d2-6ae2-427b-a629-a4467be7821d",
+      "name": "Create a database page in Notion"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "<NOTION_DATABASE_ID>",
+          "mode": "list",
+          "cachedResultName": "Transações 2026",
+          "cachedResultUrl": "https://www.notion.so/<NOTION_DATABASE_ID>"
+        },
+        "filterType": "json",
+        "filterJson": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Filters__JSON_', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notionTool",
+      "typeVersion": 2.2,
+      "position": [
+        6064,
+        912
+      ],
+      "id": "529fdaa6-4c07-4a48-9c0f-6359da9c86a3",
+      "name": "Get many database pages in Notion"
+    },
+    {
+      "parameters": {
+        "content": "## Envio da resposta de volta ao WhatsApp",
+        "height": 512,
+        "width": 512,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5760,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "6a971b13-d494-4568-a699-b22e9e0077cc",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        5296,
+        368
+      ],
+      "id": "e248b464-3ace-4686-84f8-3e823c2b346b",
+      "name": "Embeddings1"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.lembranca }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "telefone",
+                "value": "={{ $json.telefone }}"
+              },
+              {
+                "name": "timestamp",
+                "value": "={{ $json.timestamp }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        5440,
+        368
+      ],
+      "id": "8a811f4f-8223-4b08-a0cd-d735c39d2eee",
+      "name": "Data Loader"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://<EVOLUTION_API_URL>/message/sendText/Assistente%20Pessoal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<EVOLUTION_API_KEY>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $('Code in JavaScript2').item.json.telefone }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $('AI Agent').item.json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        5984,
+        224
+      ],
+      "id": "e2be3ae7-f431-4f87-b421-6c06cd82b159",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body;\n\n// Ignora requisições que não sejam mensagens novas\nif (!body || !body.data || body.event !== \"messages.upsert\") {\n    return []; \n}\n\nconst data = body.data;\nconst key = data.key || {};\n\n// Trava APENAS as mensagens enviadas pela própria IA (efeito eco)\nif (key.fromMe === true) {\n    return []; \n}\n\nlet remoteJid = key.remoteJid || \"\";\n\n// ==========================================\n// DICIONÁRIO DE CONTATOS (TRADUTOR DE LIDs)\n// ==========================================\nconst mapaContatos = {\n    // \"<LID>@lid\": \"<DDI><DDD><NUMERO>@s.whatsapp.net\"\n};\n\nif (mapaContatos[remoteJid]) {\n    remoteJid = mapaContatos[remoteJid];\n}\n\nconst telefone = remoteJid.split('@')[0];\nconst messageId = key.id || \"\";\nconst messageType = data.messageType || \"\";\nconst pushName = data.pushName || \"usuário\";\nconst message = data.message || {};\n\n// Puxa o date_time bruto direto da raiz do body\nconst timestamp = body.date_time || \"\";\n\nlet texto = \"\";\nlet urlMidia = \"\";\nlet mimeType = \"\";\n\nif (messageType === \"conversation\") {\n    texto = message.conversation || \"\";\n} else if (messageType === \"extendedTextMessage\") {\n    texto = message.extendedTextMessage?.text || \"\";\n} else if (messageType === \"imageMessage\") {\n    texto = message.imageMessage?.caption || \"\"; \n    urlMidia = message.imageMessage?.url || \"\";\n    mimeType = message.imageMessage?.mimetype || \"\";\n} else if (messageType === \"audioMessage\") {\n    urlMidia = message.audioMessage?.url || \"\";\n    mimeType = message.audioMessage?.mimetype || \"\";\n}\n\nreturn {\n    json: {\n        telefone: telefone,\n        remoteJid: remoteJid,\n        fromMe: key.fromMe,\n        nome: pushName,\n        texto: texto,\n        tipo: messageType,\n        id: messageId,\n        timestamp: timestamp, // <-- Atualizado aqui\n        urlMidia: urlMidia,\n        mimeType: mimeType,\n        messageBruta: data \n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        208
+      ],
+      "id": "d6cf9eac-eed5-42ae-bf66-05fdbe102241",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://<EVOLUTION_API_URL>/chat/getBase64FromMediaMessage/Assistente%20Pessoal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<EVOLUTION_API_KEY>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.messageBruta }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        928,
+        224
+      ],
+      "id": "54c07118-fbf5-4c50-85f4-4eba6b445a35",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base64",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1184,
+        224
+      ],
+      "id": "17971588-5099-4170-9b3d-0448fd437d28",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.nome_dono }}",
+                    "rightValue": "Cello",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1af52a3e-f4b0-4861-9641-2aaf45aca2e7"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cello"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        3280,
+        224
+      ],
+      "id": "5763ceea-293d-45d4-be16-f6c2c90c9b7f",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://<EVOLUTION_API_URL>/chat/getBase64FromMediaMessage/Assistente%20Pessoal",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "<EVOLUTION_API_KEY>"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $json.messageBruta }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        912,
+        384
+      ],
+      "id": "46de7b83-0187-448d-a1b5-95784562f289",
+      "name": "HTTP Request7"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "base64",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        384
+      ],
+      "id": "f9da29c2-9025-4627-9e1e-00ca40887a29",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6ceb6de0-4f2a-4eba-b984-fdf8511595c3",
+              "name": "personalidade_assistente",
+              "value": "={{ $json.personalidade_assistente }}",
+              "type": "string"
+            },
+            {
+              "id": "f9e31a29-d96b-4d36-a98c-166825bf8479",
+              "name": "nome_dono",
+              "value": "={{ $json.nome_dono }}",
+              "type": "string"
+            },
+            {
+              "id": "a2da21b2-3e18-4e9c-a0fa-27ac9ba42d26",
+              "name": "texto_usuario",
+              "value": "={{ $('Code in JavaScript').item.json.texto_usuario }}",
+              "type": "string"
+            },
+            {
+              "id": "f8cd6698-ec2f-475e-9b4b-a80ee5019c57",
+              "name": "remoteJid",
+              "value": "={{ $('Code in JavaScript1').item.json.remoteJid }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3072,
+        224
+      ],
+      "id": "07ce43b4-9363-47aa-b564-9a3f43b95b00",
+      "name": "Edit Fields1"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "empilhaTexto": {
+      "main": [
+        [
+          {
+            "node": "Obtem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtem": {
+      "main": [
+        [
+          {
+            "node": "Switch7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "empilhaÁudio": {
+      "main": [
+        [
+          {
+            "node": "Obtem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "empilhaIMG": {
+      "main": [
+        [
+          {
+            "node": "Obtem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Explainer": {
+      "main": [
+        [
+          {
+            "node": "empilhaIMG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcreve audio - Groq2": {
+      "main": [
+        [
+          {
+            "node": "empilhaÁudio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image Explainer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Obtem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch7": {
+      "main": [
+        [
+          {
+            "node": "NoOp.",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Deleta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "empilhaTexto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deleta": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "agente calendário",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "agente e-mail",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "agente calendário",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "agente e-mail",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "agente pesquisa",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "agente memória",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "finanças": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "agente finanças",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "agente memória",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Emails": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "agente e-mail",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendário": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "agente calendário",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Principal": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agente calendário": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agente e-mail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agente finanças": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agente pesquisa": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agente memória": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page in Notion": {
+      "ai_tool": [
+        [
+          {
+            "node": "agente finanças",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages in Notion": {
+      "ai_tool": [
+        [
+          {
+            "node": "agente finanças",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Transcreve audio - Groq2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request7": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Image Explainer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Sao_Paulo",
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
